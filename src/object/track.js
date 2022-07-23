@@ -39,33 +39,46 @@ class TrackNode{
         this._hasUpdate = false;
     }
 
-    _bezier_theta(dy, dx, offset = 0){
-        let theta = Math.atan2(dy,dx) + offset;
+    _theta(dy, dx, offset = 0){
+        return Math.atan2(dy,dx) + offset;
+    }
 
-        let length = 45;
+    _thetaToPoint(theta, length=80){
         let x = Math.cos(theta) * length;
         let y = Math.sin(theta) * length;
-        return new Point(x, y);
+        return new Point(x, y)
+    }
+
+    _bezier_theta(neighborPoint, lengthFactor = 0.45, minHandleSuggestion = 20){
+        let thetaDy = this._next.point.y - this._previous.point.y;
+        let thetaDx = this._next.point.x - this._previous.point.x;
+        let theta = this._theta(thetaDy, thetaDx, Math.PI);
+
+        let neighborDy = this.point.y - neighborPoint.y;
+        let neighborDx = this.point.x - neighborPoint.x;
+        let neighborTheta = this._theta(neighborDy, neighborDx);
+        let neighborDistance = Math.sqrt(neighborDy * neighborDy + neighborDx * neighborDx);
+
+        let nettoTheta = neighborTheta - theta + Math.PI;
+        let nettoLength = Math.cos(nettoTheta) * neighborDistance * lengthFactor;
+        if(nettoLength < 0){
+            nettoLength = -nettoLength;
+            theta += Math.PI;
+        }
+        nettoLength = Math.max(minHandleSuggestion, nettoLength);
+
+        let handlePoint = this._thetaToPoint(theta, nettoLength);
+        return handlePoint.add(this.point);
     }
 
     bezier_theta_previous(){
         if(this._next == null) return new Point(this.point.x, this.point.y);
-
-        let dy = this._next.point.y - this._previous.point.y;
-        let dx = this._next.point.x - this._previous.point.x;
-
-        return this._bezier_theta(dy, dx, Math.PI).add(this.point);
+        return this._bezier_theta(this._previous.point);
     }
 
     bezier_theta_next(){
-        if(this._previous == null) {
-            return new Point(this.point.x, this.point.y);
-        }
-
-        let dy = this._next.point.y - this._previous.point.y;
-        let dx = this._next.point.x - this._previous.point.x;
-
-        return this._bezier_theta(dy, dx, 0).add(this.point);
+        if(this._previous == null) return new Point(this.point.x, this.point.y);
+        return this._bezier_theta(this._next.point);
     }
 
     draw(painter){

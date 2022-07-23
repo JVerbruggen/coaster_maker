@@ -11,7 +11,8 @@ function setup() {
     wx = window.innerWidth;
     wy = window.innerHeight;
 
-    painter = new P5Painter();
+    // painter = new P5Painter();
+    painter = new P5DebugPainter();
     environment = new Environment();
     context = new Context(environment);
 
