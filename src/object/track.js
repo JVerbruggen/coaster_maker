@@ -19,7 +19,9 @@ class TrackNode{
     constructor(point, previous = null, next = null){
         this.point = point;
         this._previous = previous;
+        this._previousTheta = 0;
         this._next = next;
+        this._nextTheta = 0;
         this._hasUpdate = true;
         this._identifier = (Math.random() + 1).toString(36).substring(7);
     }
@@ -49,10 +51,14 @@ class TrackNode{
         return new Point(x, y)
     }
 
-    _bezier_theta(neighborPoint, offset=0, lengthFactor = 0.45, minHandleSuggestion = 20){
+    _bezier_theta(offset){
         let thetaDy = this._next.point.y - this._previous.point.y;
         let thetaDx = this._next.point.x - this._previous.point.x;
-        let theta = this._theta(thetaDy, thetaDx, offset);
+        return this._theta(thetaDy, thetaDx, offset);
+    }
+
+    _bezier_theta_point(neighborPoint, offset=0, lengthFactor = 0.45, minHandleSuggestion = 20){
+        let theta = this._bezier_theta(offset);
 
         let neighborDy = this.point.y - neighborPoint.y;
         let neighborDx = this.point.x - neighborPoint.x;
@@ -73,12 +79,12 @@ class TrackNode{
 
     bezier_theta_previous(){
         if(this._next == null) return new Point(this.point.x, this.point.y);
-        return this._bezier_theta(this._previous.point, 0);
+        return this._bezier_theta_point(this._previous.point, 0);
     }
 
     bezier_theta_next(){
         if(this._previous == null) return new Point(this.point.x, this.point.y);
-        return this._bezier_theta(this._next.point, Math.PI);
+        return this._bezier_theta_point(this._next.point, 0);
     }
 
     draw(painter){

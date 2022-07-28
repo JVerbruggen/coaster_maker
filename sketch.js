@@ -6,6 +6,7 @@ var environment;
 var context;
 var coaster;
 var mode;
+var ui;
 
 function setup() {
     wx = window.innerWidth;
@@ -15,6 +16,7 @@ function setup() {
     painter = new P5DebugPainter();
     environment = new Environment();
     context = new Context(environment);
+    ui = new UI(wx, wy);
 
     coaster = Coaster.create_new();
     environment._coasters.push(coaster);
@@ -28,15 +30,28 @@ function setup() {
 function draw() {
     clear();
     noStroke();
-    rect(0,0,wx,wy);
     fill(255,255,255)
+    rect(0,0,wx,wy);
 
     environment.draw(painter);
+    ui.draw(painter);
+}
+
+function _currentPoint(){
+    let x = mouseX;
+    let y = mouseY;
+    return new Point(x,y);
 }
 
 function mouseClicked(){
-    let x = mouseX;
-    let y = mouseY;
+    let point = _currentPoint();
 
-    mode.clickEvent(new Point(x,y));
+    if(ui.clickEvent(point)) return;
+    mode.clickEvent(point);
+}
+
+function mouseMoved(){
+    let point = _currentPoint();
+
+    ui.moveEvent(point);  
 }
